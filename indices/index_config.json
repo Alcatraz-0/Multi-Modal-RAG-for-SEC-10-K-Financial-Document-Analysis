@@ -1,0 +1,9 @@
+{
+  "embedding_model": "sentence-transformers/all-mpnet-base-v2",
+  "embedding_dimension": 768,
+  "num_sections": 14810,
+  "num_text_chunks": 17706,
+  "num_table_sentences": 15838,
+  "chunk_size": 512,
+  "chunk_overlap": 50
+}
