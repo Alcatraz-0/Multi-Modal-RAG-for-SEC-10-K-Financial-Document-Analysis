@@ -6,7 +6,7 @@
 > **Academic Project** | CS 582 – Information Retrieval | University of Illinois Chicago | Fall 2025
 
 **Authors:**  
-- [Anand Meena](https://github.com/YOUR_USERNAME) (UIN: 661706828)
+- Anand Meena
 
 ---
 
