@@ -1,41 +1,60 @@
-# San Francisco Property Tax Analysis & Gentrification Risk Assessment
+# Multi-Modal Retrieval-Augmented Generation for SEC 10-K Filings
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Jupyter](https://img.shields.io/badge/jupyter-notebook-orange.svg)](https://jupyter.org/)
-[![JavaScript](https://img.shields.io/badge/javascript-ES6-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 
 ---
 
 ## Project Overview
 
-This project implements interactive data visualizations to analyze San Francisco property tax data (2015-2023) using Vega-Lite, Altair, and custom web technologies. The analysis explores property value distributions, neighborhood trends, gentrification patterns, and spatial correlations through multiple interactive interfaces.
+This project implements a **Multi-Modal Retrieval-Augmented Generation (RAG)** system that analyzes SEC 10-K financial filings by combining text, tables, and figure captions. The system retrieves relevant information hierarchically and generates accurate, cited answers with mathematical verification.
+
+### Key Achievements
+
+- **+12 point EM improvement** over text-only RAG baselines
+- **85% Table Recall@5** for locating relevant tables in long documents
+- **96% faithfulness** in generated answers
+- **4.2s median latency** for end-to-end query processing
 
 ### Key Features
 
-- **Linked Visualizations**: 4 coordinated views with brush, click, and radio button interactions
-- **Spatial Analysis**: Choropleth maps with ZIP code-level property value distribution
-- **Interactive Dashboard**: 6+ linked views combining spatial and temporal analysis
-- **Web Application**: Standalone HTML/JavaScript dashboard for browser-based exploration
-- **Gentrification Insights**: Identification of appreciation patterns and gentrification frontiers
-- **Performance Optimized**: Handles 1.5M+ property records with responsive interactions
-
-### Dataset
-
-**Source:** [San Francisco Open Data Portal - Assessor Historical Secured Property Tax Rolls](https://data.sfgov.org/Housing-and-Buildings/Assessor-Historical-Secured-Property-Tax-Rolls/wv5m-vpq2)
-
-**Coverage:** 2015-2023 (9 years)  
-**Records:** ~1.5 million property assessments  
-**Geographic Scope:** All San Francisco ZIP codes
+- **Multi-Modal Processing**: Handles text, structured tables, and figure captions as first-class citizens
+- **Hierarchical Retrieval**: Two-stage search (sections → content) for improved accuracy
+- **Hybrid Search**: Combines dense embeddings with BM25 keyword matching
+- **Table-Aware Routing**: Automatically detects and prioritizes table-centric queries
+- **Math Verification**: Validates numeric calculations against source data
+- **Precise Citations**: Provides section-level and table cell-level references
 
 ---
 
-## Quick Start
+## Data Download (Required)
 
-### 1. Clone Repository
+**Due to the large size of the `data/` folder, it has been zipped and uploaded separately.**
+
+**Download the data folder:** [data.zip on Google Drive](https://drive.google.com/file/d/15hjlGdGdB67XPPdc7AhSyvvlMpV6poKq/view?usp=sharing)
+
+**Setup Instructions:**
+1. Download `data.zip` from the Google Drive link above
+2. Extract the zip file
+3. Place the extracted `data/` folder in the project root directory
+4. The structure should be: `project-root/data/`
+
+The data folder includes:
+- Downloaded SEC 10-K filings (`data/raw/`)
+- Parsed documents (`data/parsed/`)
+- Evaluation datasets (`data/evaluation/`)
+- Generated indices and results
+
+> **Note:** Without the data folder, you can still review the code and notebooks, but you'll need to run the data ingestion process (notebook 01) to generate your own data.
+
+---
+
+## Quick Start (5 Minutes)
+
+### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/sf-property-tax-analysis.git
-cd sf-property-tax-analysis
+git clone https://github.com/YOUR_USERNAME/sec-10k-multimodal-rag.git
+cd sec-10k-multimodal-rag
 ```
 
 ### 2. Install Dependencies
@@ -49,600 +68,326 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 3. Download Data Files
+### 3. Download Data Folder
 
-**Large data files available on Google Drive:**  
-[Download Data Files](https://drive.google.com/drive/folders/1U8oAurTYB6y-9U_dCPxy2DU8UZgknGHq?usp=sharing)
+Download and extract `data.zip` from the Google Drive link above.
 
-Required file:
-- `sf_property_data_clean.parquet` (212 MB)
-
-Place in `data/` directory.
-
-**Note:** The small GeoJSON file (`San_Francisco_ZIP_Codes_20251020.geojson`) is already included in the repo.
-
-### 4. Run Jupyter Notebooks
+### 4. Launch Jupyter
 
 ```bash
 jupyter notebook
 ```
 
-Navigate to `notebooks/` folder and open any notebook:
-- `linked_views.ipynb` - Linked visualizations with interaction patterns
-- `spatial_visualization.ipynb` - Choropleth maps and spatial analysis
-- `data_visualization.ipynb` - Static analysis and exploratory visualizations
-- `interactive_visualizations.ipynb` - Additional interactive components
-- `data_importing_transformation.ipynb` - Data preprocessing pipeline
-- `embeddings_projections.ipynb` - Dimensionality reduction analysis
+### 5. Run Notebooks Sequentially
 
-### 5. View Web Application
+Navigate to `notebooks/` and open:
 
-Open `webapp/Index.html` in a web browser to access the interactive dashboard.
+1. **01_data_ingestion.ipynb** ← Start here
+2. **02_document_parsing.ipynb**
+3. **03_indexing.ipynb**
+4. **04_retrieval.ipynb**
+5. **05_qa_generation.ipynb**
+6. **06_evaluation.ipynb**
 
-**Features:**
-- Real-time data filtering
-- Interactive choropleth maps
-- Temporal controls and animations
-- Responsive design
-- No server required (runs entirely in browser)
+### 6. Configure Your Settings
+
+Before running `01_data_ingestion.ipynb`, update:
+
+```python
+# In the notebook, update this:
+USER_AGENT = "YourName your.email@example.com"  # Required by SEC
+```
+
+For `05_qa_generation.ipynb`, ensure Ollama is running:
+
+```bash
+# Install Ollama from https://ollama.ai
+ollama serve
+
+# Pull the model
+ollama pull llama3.2:1b
+```
 
 ---
 
 ## Project Structure
 
 ```
-sf-property-tax-analysis/
-├── data/
-│   ├── San_Francisco_ZIP_Codes_20251020.geojson  # Included (673 KB)
-│   └── sf_property_data_clean.parquet            # Download separately (212 MB)
-├── notebooks/
-│   ├── linked_views.ipynb
-│   ├── spatial_visualization.ipynb
-│   ├── data_visualization.ipynb
-│   ├── interactive_visualizations.ipynb
-│   ├── data_importing_transformation.ipynb
-│   └── embeddings_projections.ipynb
-├── images/
-│   ├── value_distribution_with_linked_scatter_and_bar_charts.gif
-│   ├── neighborhood_bar_chart_with_linked_time_series.gif
-│   ├── age_vs_value_scatter_with_density_heatmap.gif
-│   ├── property_type_trends_with_year_comparison.gif
-│   ├── Linked_spatial_dashboard.gif
-│   ├── ZIP_choropleth_with_year_slider_2015-2023.gif
-│   └── [40+ additional visualizations]
-├── webapp/
-│   ├── Index.html        # Main web application
-│   ├── script.js         # Interactive functionality
-│   └── style.css         # Styling and layout
-├── .gitignore
-├── requirements.txt
-└── README.md
+sec-10k-multimodal-rag/
+├── data/                    # Data directory (download separately)
+│   ├── raw/                 # Downloaded 10-K filings
+│   ├── parsed/              # Parsed documents
+│   └── evaluation/          # Benchmark datasets
+├── notebooks/               # Jupyter notebooks (main workflow)
+│   ├── 01_data_ingestion.ipynb
+│   ├── 02_document_parsing.ipynb
+│   ├── 03_indexing.ipynb
+│   ├── 04_retrieval.ipynb
+│   ├── 05_qa_generation.ipynb
+│   └── 06_evaluation.ipynb
+├── src/                     # Python source code
+│   ├── parsers/             # Document and table parsers
+│   ├── retrieval/           # Retrieval components
+│   ├── qa/                  # QA and verification
+│   ├── evaluation/          # Metrics and evaluation
+│   └── utils/               # Utilities and config
+├── indices/                 # FAISS indices (generated by notebook 03)
+├── images/                  # Project visualizations (already in repo)
+│   ├── 1_converted.png      # Latency breakdown by component
+│   ├── 2_converted.png      # Error distribution by category
+│   ├── 3_converted.png      # Ablation study: component impact
+│   └── 4_converted.png      # QA metrics & retrieval comparison
+├── .gitignore              # Git ignore configuration
+├── requirements.txt         # Python dependencies
+└── README.md               # This file
 ```
 
 ---
 
-## Notebooks Overview
+## System Architecture
 
-### 1. Linked Views (`linked_views.ipynb`)
+### Core Components
 
-Four coordinated views exploring property relationships through different interaction mechanisms.
+1. **Document Parser** (`src/parsers/filing_parser.py`)
+   - Extracts text, tables, and metadata from HTML/PDF filings
+   - Preserves document structure
 
-**View 1: Property Value Distribution Explorer**
+2. **Table Parser** (`src/parsers/table_parser.py`)
+   - Preserves table structure with row/column headers
+   - Creates searchable table row-sentences
 
-![Value Distribution](images/value_distribution_with_linked_scatter_and_bar_charts.gif)
+3. **Section Extractor** (`src/parsers/section_extractor.py`)
+   - Identifies key 10-K sections (MD&A, Financial Statements, etc.)
+   - Extracts section boundaries
 
-- **Interactions:** Brush selection on histogram filters scatter plot and bar chart
-- **Questions Answered:** Value distribution patterns, age-value relationships, property type dominance
+4. **Query Router** (`src/retrieval/query_router.py`)
+   - Classifies queries (numeric vs narrative)
+   - Detects table-centric queries
+   - Routes to appropriate retrieval strategy
 
-**View 2: Neighborhood Comparison Dashboard**
+5. **Hierarchical Retriever** (`src/retrieval/hierarchical_retriever.py`)
+   - **Stage A**: Section-level retrieval (find relevant sections)
+   - **Stage B**: Content retrieval within sections (text + tables)
+   - Hybrid search (dense + BM25 fusion)
 
-![Neighborhood Comparison](images/neighborhood_bar_chart_with_linked_time_series.gif)
+6. **Answer Generator** (`src/qa/answer_generator.py`)
+   - LLM-based answer generation
+   - Prompt engineering for financial context
+   - Citation building
 
-- **Interactions:** Click selection with multi-select (Shift+click)
-- **Questions Answered:** Highest-value neighborhoods, temporal evolution, distinguishing characteristics
+7. **Math Verifier** (`src/qa/math_verifier.py`)
+   - Validates numeric calculations against evidence
+   - Detects unit mismatches
 
-**View 3: Building Age and Value Explorer**
+8. **Evaluation Metrics** (`src/evaluation/metrics.py`)
+   - Computes EM, F1, Recall@k, MRR
+   - Benchmark comparisons
 
-![Age vs Value](images/age_vs_value_scatter_with_density_heatmap.gif)
+### Pipeline Flow
 
-- **Interactions:** Pan and zoom with linked density heatmap
-- **Questions Answered:** Age-value correlation, density distribution, land value variation
-
-**View 4: Property Type Value Trends**
-
-![Property Trends](images/property_type_trends_with_year_comparison.gif)
-
-- **Interactions:** Radio button toggles median/mean aggregation
-- **Questions Answered:** Property type evolution, 2015 vs 2023 comparison, aggregation method impact
-
----
-
-### 2. Spatial Visualization (`spatial_visualization.ipynb`)
-
-Choropleth maps with temporal controls for geographic analysis.
-
-![Choropleth Map](images/ZIP_choropleth_with_year_slider_2015-2023.gif)
-
-**Key Features:**
-- Year slider for temporal navigation
-- Click selection on ZIP codes
-- Color-coded value distributions
-- Interactive tooltips with property statistics
-
-**Maps Include:**
-- Median property value by ZIP code
-- Year-over-year appreciation rates
-- Building age distribution
-- Land value percentage
-
----
-
-### 3. Integrated Dashboard (`interactive_visualizations.ipynb`)
-
-Six linked views combining spatial and temporal analysis.
-
-![Integrated Dashboard](images/Linked_spatial_dashboard.gif)
-
-**Dashboard Components:**
-
-**Row 1:**
-- Choropleth Map: Geographic distribution with year filter
-- Time Series: Median value trends for selected ZIPs
-- Above/Below Median: Comparison chart
-
-**Row 2:**
-- Rank Bars: Top 15 ZIPs by median value
-- Deviation Heatmap: ZIP performance vs city median
-
-**Row 3:**
-- Age Histogram: Building age distribution
-- Age vs Value Scatter: Relationship analysis
-
----
-
-### 4. Data Visualization (`data_visualization.ipynb`)
-
-Comprehensive exploratory data analysis with 15+ static visualizations:
-
-- Property tax records by year
-- Property value distribution analysis
-- Ridge plots showing value shifts over time
-- Land vs improvement value comparisons
-- Building age and bedroom count distributions
-- Top property types analysis
-- COVID-era comparison (pre vs during pandemic)
-- Neighborhood recovery slopes
-- Gentrification risk assessment
-- Parallel coordinates plots
-
----
-
-### 5. Data Pipeline (`data_importing_transformation.ipynb`)
-
-Complete data preprocessing workflow:
-
-- Data ingestion from SF Open Data API
-- Cleaning and validation
-- Feature engineering (building age, land percentage, appreciation rates)
-- Geospatial data integration
-- Export to optimized formats (Parquet, GeoJSON)
-
----
-
-### 6. Embeddings & Projections (`embeddings_projections.ipynb`)
-
-Advanced dimensionality reduction analysis:
-
-- Property feature embedding generation
-- t-SNE and UMAP projections
-- Cluster identification
-- Interactive 2D scatter plots
-- Pattern discovery in high-dimensional property data
-
----
-
-## Web Application
-
-### Features
-
-**Interactive Dashboard:**
-- Real-time filtering by year, neighborhood, property type
-- Coordinated highlighting across multiple views
-- Responsive design (desktop and tablet)
-- No installation required (runs in browser)
-
-**Visualizations:**
-- Choropleth maps with year slider
-- Time series charts
-- Distribution histograms
-- Scatter plots with pan/zoom
-
-**Technical Details:**
-- Pure JavaScript (ES6)
-- D3.js for data-driven visualizations
-- CSS Grid for responsive layout
-- Client-side data processing
-
-### Usage
-
-```bash
-# Option 1: Open directly in browser
-open webapp/Index.html
-
-# Option 2: Serve with local HTTP server (recommended)
-cd webapp
-python -m http.server 8000
-# Then open http://localhost:8000 in browser
+```
+Query → Route → Stage A (Section Retrieval) → Stage B (Content Retrieval) →
+Answer Generation → Math Verification → Citation Building → Final Answer
 ```
 
 ---
 
-## Key Findings
+## Example Usage
 
-### 1. The Pacific Heights "Historic Luxury" Pattern
+The system handles various question types:
 
-Historic properties (1920s-1940s) in northwest Pacific Heights appreciated **35% faster** than the neighborhood median from 2015-2023, creating a premium for architectural heritage. This pattern was nearly invisible in 2015 but became pronounced by 2023.
+**Numeric Questions:**
+```python
+"Report the YoY change in R&D expense for 2022 to 2024"
+"What is the ratio of long-term debt to equity in 2023?"
+```
 
-**Discovery Method:** Linked views - click Pacific Heights on choropleth, brush old buildings in scatter plot, observe time series acceleration.
+**Multi-Year Analysis:**
+```python
+"Which operating segment contributed most to 2024 revenue growth, and by how much?"
+```
 
-### 2. COVID Impact Differentiation
-
-Newer buildings (< 20 years old) experienced deeper value drops during COVID-19 (2020) but recovered faster (2021-2022) compared to historic single-family homes.
-
-**Discovery Method:** Year slider analysis - move from 2019 → 2020 → 2022, observe scatter plot age segments respond differently.
-
-### 3. Gentrification Frontiers Identified
-
-Mid-century housing stock (50-80 years old, $800K-$1.2M) in eastern neighborhoods (Mission, Bayview) showed the fastest appreciation rates, indicating active gentrification zones.
-
-**Discovery Method:** Deviation heatmap - brush positive deviation ranges, map highlights eastern ZIPs, time series shows post-2019 acceleration.
-
-### 4. Land Scarcity Premium
-
-Downtown and northern neighborhoods show land value growing significantly faster than improvement values, driven by geographic constraints and zoning.
-
-**Discovery Method:** Color scatter plot by land percentage, observe downtown clusters have higher land ratios and steeper appreciation.
+**Narrative Questions:**
+```python
+"What are the main risk factors mentioned in the filing?"
+"Explain the company's business strategy"
+```
 
 ---
 
-## Quantitative Results
+## Performance Results
 
-### Overall Dataset Statistics
+| Metric | Target | Achieved |
+|--------|--------|----------|
+| EM improvement over text-only RAG | +8-12 | ✅ +12 |
+| Table Recall@5 | ≥ 0.80 | ✅ 0.85 |
+| Faithfulness | ≥ 0.95 | ✅ 0.96 |
+| Median Latency | < 8s | ✅ 4.2s |
 
-**Property Records:**
-- Total properties analyzed: 1,547,892
-- Unique ZIP codes: 52
-- Years covered: 9 (2015-2023)
-- Property types: 127 (consolidated to 20 major categories)
+### System Comparison
 
-**Value Ranges (2023):**
-- Minimum property value: $12,450
-- Maximum property value: $187,500,000
-- Median property value: $1,247,000
-- Mean property value: $1,893,456
-- Standard deviation: $2,341,678
+| System | EM | F1 | Recall@5 | Latency |
+|--------|----|----|----------|---------|
+| Text-only RAG | 42.3 | 58.7 | 0.68 | 3.8s |
+| Table-only QA | 38.5 | 52.4 | 0.76 | 2.9s |
+| Flat Search | 45.1 | 61.2 | 0.72 | 5.6s |
+| W/o Math Ver. | 51.8 | 68.5 | 0.83 | 4.0s |
+| **Our System** | **54.3** | **71.2** | **0.85** | **4.2s** |
 
-### Temporal Trends
+For detailed results and analysis, see the [full project report](docs/project_report.pdf).
 
-**City-Wide Appreciation (2015-2023):**
-- Overall appreciation: 42.3%
-- Annual growth rate (CAGR): 4.6%
-- Peak appreciation year: 2021 (+8.2% YoY)
-- Lowest growth year: 2020 (-1.4% YoY, COVID impact)
-- Recovery period: 2021-2023 (+18.7% cumulative)
+### Visualizations
 
-**Neighborhood Variance:**
-- Top appreciating ZIP (94115 - Pacific Heights): +61.2%
-- Lowest appreciating ZIP (94124 - Bayview): +23.8%
-- Standard deviation across ZIPs: 12.4 percentage points
-- Number of ZIPs above city median: 26 (50%)
+**Ablation Study: Component Impact**
 
-### Property Characteristics
+![Ablation Study](images/3_converted.png)
 
-**Building Age Distribution:**
-- Pre-1920 (historic): 18.7% of properties
-- 1920-1950 (pre-war): 31.2%
-- 1950-1980 (mid-century): 28.4%
-- 1980-2000 (modern): 14.3%
-- Post-2000 (contemporary): 7.4%
-- Median building age: 67 years
+**System Comparison: QA Metrics vs Retrieval/Faithfulness**
 
-**Land Value Analysis:**
-- Mean land value percentage: 61.3%
-- Median land value percentage: 58.7%
-- Downtown areas (highest): 78-85% land value
-- Outer neighborhoods (lowest): 42-55% land value
-- Correlation with total value: r = 0.67
+![System Comparison](images/4_converted.png)
 
-**Property Types (Top 5 by Count):**
-1. Single-family residential: 52.3% (809,000 properties)
-2. Condominiums: 28.1% (435,000 properties)
-3. Multi-family (2-4 units): 12.6% (195,000 properties)
-4. Commercial mixed-use: 4.2% (65,000 properties)
-5. Apartments (5+ units): 2.8% (43,000 properties)
+**Error Distribution by Category**
 
-### Gentrification Metrics
+![Error Distribution](images/2_converted.png)
 
-**Identified Gentrification Zones (Eastern Neighborhoods):**
-- ZIPs analyzed: 8 (Mission, Bayview, Excelsior, Visitacion Valley)
-- Average appreciation 2015-2023: 47.8% (vs 42.3% city-wide)
-- Acceleration post-2019: +5.7 percentage points above city average
-- Property turnover rate: 23% (vs 18% city-wide)
-- New construction permits: +142% increase 2015-2023
+**Latency Breakdown by Component**
 
-**Displacement Risk Indicators:**
-- Properties with 50%+ appreciation: 34.2% of eastern neighborhoods
-- Properties with 30-50% appreciation: 41.8%
-- Below-median appreciation: 24.0%
-- High-risk ZIPs (top appreciation + low starting values): 5 identified
-
-### COVID-19 Impact Analysis
-
-**2020 Value Changes:**
-- Properties with value decline: 38.4%
-- Average decline (affected properties): -6.8%
-- Properties with value increase: 29.1%
-- Properties unchanged: 32.5%
-
-**Building Age Correlation with COVID Impact:**
-- Buildings < 20 years: -8.3% average decline
-- Buildings 20-50 years: -6.1% average decline
-- Buildings 50-100 years: -4.2% average decline
-- Buildings > 100 years: -2.8% average decline
-- Statistical significance: p < 0.001
-
-**Recovery Statistics (2020-2023):**
-- Full recovery (exceeded 2019 values): 67.8% of properties
-- Partial recovery (above 2020, below 2019): 21.3%
-- No recovery (still below 2020): 10.9%
-- Time to recovery (median): 18 months
-
-### Historic Property Premium
-
-**Pacific Heights Analysis (ZIP 94115):**
-- Pre-war buildings (1920-1945): 1,847 properties
-- Appreciation 2015-2023: 61.2% (vs 42.3% city average)
-- Premium over neighborhood median: +18.9 percentage points
-- Annual appreciation rate: 6.1% vs 4.3% for newer buildings
-- Price per square foot premium: +34% for historic properties
-
-**Age-Value Correlation:**
-- Buildings 90-110 years old: Highest appreciation quartile (57.3% average)
-- Buildings 20-40 years old: Lowest appreciation quartile (31.2% average)
-- Correlation coefficient (age vs appreciation): r = 0.42
-- R-squared: 0.176 (age explains 17.6% of appreciation variance)
-
-### Spatial Concentration
-
-**Value Concentration (2023):**
-- Top 10% of ZIPs hold: 34.7% of total property value
-- Top 25% of ZIPs hold: 61.2% of total property value
-- Gini coefficient: 0.418 (moderate inequality)
-- Trend 2015-2023: +0.047 (increasing concentration)
-
-**Geographic Patterns:**
-- Northern neighborhoods (5 ZIPs): Median value $2.1M
-- Central neighborhoods (8 ZIPs): Median value $1.4M
-- Western neighborhoods (12 ZIPs): Median value $1.2M
-- Eastern neighborhoods (8 ZIPs): Median value $897K
-- Southern neighborhoods (19 ZIPs): Median value $734K
-
-### Visualization Performance Metrics
-
-**Data Processing:**
-- Raw CSV size: 972 MB
-- Parquet compression: 212 MB (78% reduction)
-- Loading time (Parquet): 2.3 seconds
-- Loading time (CSV): 18.7 seconds
-- Memory footprint: 1.8 GB in RAM
-
-**Interactive Response Times:**
-- Brush selection (1000 points): 45ms average
-- Click selection (single ZIP): 28ms average
-- Year slider update: 156ms average
-- Choropleth map render: 312ms average
-- Scatter plot pan/zoom: 16.7ms per frame (60 FPS)
-
-**Web Application Metrics:**
-- Initial page load: 1.2 seconds
-- Data fetch (if local): 0.8 seconds
-- First interactive render: 2.1 seconds
-- Bundle size: 87 KB (HTML + CSS + JS)
-- Supported browsers: Chrome 90+, Firefox 88+, Safari 14+
+![Latency Breakdown](images/1_converted.png)
 
 ---
 
 ## Technologies Used
 
-### Python Libraries
+### Document Processing
+- **BeautifulSoup** - HTML parsing
+- **PyMuPDF** - PDF parsing (planned)
 
-- **Altair** - Declarative statistical visualization grammar
-- **Vega-Lite** - Interactive graphics specification
-- **Pandas** - Data manipulation and analysis
-- **GeoPandas** - Geospatial data operations
-- **NumPy** - Numerical computing
-- **Matplotlib** - Static plotting
-- **Seaborn** - Statistical data visualization
+### Embeddings & Search
+- **Sentence Transformers** - Dense embeddings (all-mpnet-base-v2)
+- **FAISS** - Vector similarity search
+- **BM25** - Keyword search
 
-### Web Technologies
+### LLM & Answer Generation
+- **Ollama** - Local LLM inference
+- **Llama 3.2** - Answer generation
 
-- **HTML5** - Semantic markup and structure
-- **CSS3** - Styling, Grid layout, Flexbox
-- **JavaScript (ES6)** - Interactive functionality
-- **D3.js** - Data-driven document manipulation (if used)
-- **TopoJSON** - Efficient geographic data encoding
+### Data Processing
+- **Pandas** - Data manipulation
+- **NumPy** - Numerical operations
 
-### Data Formats
-
-- **Parquet** - Columnar storage for efficient data access
-- **GeoJSON** - Geographic feature encoding
-- **JSON** - Data interchange and configuration
+### Visualization
+- **Matplotlib** - Plotting
+- **Seaborn** - Statistical visualization
 
 ---
 
-## Performance Metrics
+## Configuration
 
-**Data Volume:**
-- 1.5M+ property records
-- 9 years temporal coverage
-- 50+ ZIP codes
-- 20+ property type categories
+### Model Selection
 
-**Interaction Response:**
-- Brush selection: < 100ms
-- Click selection: < 50ms
-- Year slider: < 200ms
-- Pan/zoom: 60 FPS
-
-**File Sizes:**
-- Parquet data: 212 MB (compressed from 972 MB CSV)
-- GeoJSON boundaries: 673 KB
-- Web app: < 100 KB total
-- Images: ~100 MB (GIFs and PNGs)
-
----
-
-## Design Principles
-
-### Interaction Mechanisms
-
-**Data Manipulation:**
-- **Brush selection**: Filters continuous value ranges (histograms, scatter plots)
-- **Click selection**: Selects discrete categories (neighborhoods, ZIPs, property types)
-- **Multi-select**: Shift+click for comparing multiple items
-
-**View Manipulation:**
-- **Pan and zoom**: Explore dense data regions (scatter plots)
-- **Year slider**: Temporal navigation and animation
-- **Radio buttons**: Toggle aggregation methods (median vs mean)
-
-**Visual Mapping:**
-- **Conditional encoding**: Highlight selections vs context
-- **Synchronized updates**: All views update together
-- **Consistent color schemes**: Viridis for continuous, Tableau10 for categorical
-
-### Overplotting Solutions
-
-- **Log scales** for right-skewed distributions
-- **Opacity adjustments** (0.3-0.5 for scatter plots)
-- **Heatmap aggregation** for dense regions
-- **Top-N filtering** for categorical data (limit to 5-20 categories)
-- **Sampling** for web performance (30K of 1.5M records in scatter plots)
-
-### Coordination Strategy
-
-- Shared parameters across all views (year, ZIP selection)
-- Context preservation (unselected data shown in gray, not hidden)
-- Visual feedback for selection propagation
-- Persistent selection state across filter changes
-
----
-
-## Usage Examples
-
-### Example 1: Finding High-Appreciation Neighborhoods
-
-1. Open `interactive_visualizations.ipynb` or web app
-2. Move year slider from 2015 → 2023
-3. Observe choropleth map color changes (darkening = appreciation)
-4. Click on darkest ZIPs (Pacific Heights, Marina, Presidio)
-5. Time series shows 40-50% appreciation over period
-6. Age scatter reveals old buildings drove growth
-
-### Example 2: Identifying Gentrification Risk Zones
-
-1. Open deviation heatmap view
-2. Brush positive deviation range (+20% to +50% above city median)
-3. Map highlights outperforming ZIPs in eastern neighborhoods
-4. Time series shows acceleration starting 2019
-5. Age histogram reveals mid-century housing stock
-6. **Insight:** Eastern SF experiencing rapid gentrification
-
-### Example 3: COVID-19 Impact Analysis
-
-1. Move year slider to 2020
-2. Observe value drops in time series (all ZIPs affected)
-3. Click affected ZIPs (SoMa, Mission Bay - newer developments)
-4. Age scatter shows newer buildings (<20 years) dropped more
-5. Move slider to 2021-2022 to observe recovery patterns
-6. **Insight:** Modern condos more volatile than historic homes
-
-### Example 4: Land Value Premium Discovery
-
-1. Color scatter plot by land value percentage
-2. Notice downtown ZIPs (via map click) have higher land percentages
-3. Brush scatter plot high-land-percentage region
-4. Map confirms clustering in downtown and northern neighborhoods
-5. Time series shows land premium grew faster than building values
-6. **Insight:** Geography constrains supply, driving land premiums
-
----
-
-## Data Preprocessing
-
-### Source Data Cleaning
+Edit `src/utils/config.py`:
 
 ```python
-# Key preprocessing steps performed in data_importing_transformation.ipynb
+# Embedding model
+DEFAULT_EMBEDDING_MODEL = "sentence-transformers/all-mpnet-base-v2"
 
-1. Filter to residential properties only
-2. Remove records with missing/invalid values
-3. Standardize property types (consolidate 200+ types → 20 major categories)
-4. Calculate derived metrics:
-   - Building age: current_year - year_built
-   - Land value percentage: (land_value / total_value) × 100
-   - Year-over-year appreciation: (current_value / prior_value - 1) × 100
-   - Deviation from city median: (zip_value / city_median - 1) × 100
-5. Aggregate to ZIP-year level for choropleth maps
-6. Sample strategically for scatter plots (30K records for performance)
-7. Export to Parquet (5x compression vs CSV)
+# LLM for answer generation
+DEFAULT_LLM_MODEL = "llama3.2:1b"  # Via Ollama
 ```
 
-### Derived Metrics
+### Retrieval Parameters
 
-- **Building Age**: 2023 - year_built
-- **Land Value %**: (land_assessed_value / closed_roll_total_assessed_value) × 100
-- **YoY Appreciation**: ((value_2023 / value_2022) - 1) × 100
-- **Deviation from Median**: ((zip_median / city_median) - 1) × 100
-- **Value Tier**: Quartile-based categorization (Low/Mid/High/Luxury)
+Adjust in `src/utils/config.py`:
 
----
-
-## Known Limitations
-
-1. **Data Coverage**: Limited to properties with complete tax records (excludes some newer developments)
-2. **Sampling**: Scatter plots show 30K of 1.5M records for performance (representative sample)
-3. **Geographic Resolution**: ZIP code level analysis (not parcel-level granularity)
-4. **Temporal Granularity**: Annual snapshots only (no intra-year trends)
-5. **Property Types**: Simplified to top 20 categories for clarity
-6. **Web App**: Requires modern browser with JavaScript enabled
-7. **Large Files**: Main dataset (212 MB) must be downloaded separately
+```python
+DEFAULT_CHUNK_SIZE = 512
+DEFAULT_CHUNK_OVERLAP = 50
+DEFAULT_TOP_K_SECTIONS = 5
+DEFAULT_TOP_K_CONTENT = 10
+```
 
 ---
 
-## Dependencies
+## Reproducing Results
 
-```txt
-# Python
-pandas>=1.3.0
-altair>=4.2.0
-geopandas>=0.10.0
-numpy>=1.21.0
-jupyter>=1.0.0
-matplotlib>=3.5.0
-seaborn>=0.11.0
+### Step-by-Step Guide
 
-# Web (included via CDN, no installation needed)
-# - D3.js (if used)
-# - Leaflet.js (if used for maps)
+#### Step 1: Environment Setup (5 minutes)
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Install Ollama for LLM inference
+# Download from https://ollama.ai
+ollama serve
+
+# Pull the LLM model
+ollama pull llama3.2:1b
+```
+
+**Verify:** Check that `ollama list` shows llama3.2:1b
+
+#### Step 2: Data Setup (2 minutes)
+
+```bash
+# Download data.zip from Google Drive (see link above)
+# Extract to project root
+# Verify structure: project-root/data/
+```
+
+**Verify:** Run `ls data/raw/*/` and check for HTML files
+
+#### Step 3: Run Notebooks Sequentially (~60-90 minutes total)
+
+Open Jupyter and run notebooks 01-06 in order. Each notebook is self-contained with clear instructions.
+
+#### Step 4: Review Results
+
+After completing all notebooks, check:
+- `data/qa_results/qa_results.json` - QA results with citations
+- `data/evaluation_report.txt` - Performance metrics
+- Console output in notebook 06 - Detailed evaluation
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+**Issue:** Ollama connection error in notebook 05
+```bash
+# Solution: Start Ollama server
+ollama serve
+```
+
+**Issue:** Out of memory during indexing
+```python
+# Solution: Reduce batch size in notebook 03
+embedding_generator = EmbeddingGenerator(
+    model_name=embedding_model_name,
+    batch_size=16,  # Reduce from 32
+    device='cpu'
+)
+```
+
+**Issue:** FAISS dimension mismatch
+```bash
+# Solution: Delete indices/ and rerun notebook 03
+rm -rf indices/*
+```
+
+**Issue:** Module not found
+```bash
+# Add src to Python path
+export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
 ```
 
 ---
 
 ## Related Work
 
-- [SF Open Data Portal](https://datasf.org/) - Source of property tax data
-- [Vega-Lite Documentation](https://vega.github.io/vega-lite/) - Visualization grammar
-- [Altair Gallery](https://altair-viz.github.io/gallery/) - Python visualization examples
-- [GeoPandas Documentation](https://geopandas.org/) - Geospatial data handling
-- [D3.js Gallery](https://observablehq.com/@d3/gallery) - Interactive visualization examples
+- [FinQA Dataset](https://github.com/czyssrs/FinQA) - Financial QA benchmark
+- [ColBERT](https://github.com/stanford-futuredata/ColBERT) - Efficient multi-stage retrieval
+- [TAPAS](https://github.com/google-research/tapas) - Table pre-training
+- [RAG Paper](https://arxiv.org/abs/2005.11401) - Original RAG architecture
