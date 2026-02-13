@@ -1,12 +1,6 @@
 # Multi-Modal Retrieval-Augmented Generation for SEC 10-K Filings
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Paper](https://img.shields.io/badge/paper-PDF-red.svg)](link-to-paper)
-
-> **Academic Project** | CS 582 – Information Retrieval | University of Illinois Chicago | Fall 2025
-
-**Authors:**  
-- Anand Meena
 
 ---
 
